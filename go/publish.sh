@@ -8,9 +8,7 @@ fi
 
 VERSION="v$1"
 
-# Ensure we're on the main branch and up to date
-git checkout main
-git pull origin main
+cd lit_go_sdk
 
 # Update go.mod and go.sum
 go mod tidy
