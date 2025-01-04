@@ -20,12 +20,17 @@ class NodeServer:
                 "Bundled server not found. This is likely an installation issue."
             )
 
-        log_file = open(Path(__file__).parent / "server.log", "w")
+        if os.getenv("LIT_DEBUG_JS_SDK_SERVER") == "true":
+            log_file = open(Path(__file__).parent / "server.log", "w")
+            stdout = stderr = log_file
+        else:
+            stdout = stderr = subprocess.DEVNULL
+
         self.process = subprocess.Popen(
             ["node", str(self.server_path)],
             env={**os.environ, "PORT": str(self.port)},
-            stdout=log_file,
-            stderr=log_file,
+            stdout=stdout,
+            stderr=stderr,
             cwd=Path(__file__).parent
         )
 

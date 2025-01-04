@@ -45,6 +45,7 @@ jobs:
         working-directory: go/lit_go_sdk
         env:
           LIT_POLYGLOT_SDK_TEST_PRIVATE_KEY: ${{ secrets.LIT_POLYGLOT_SDK_TEST_PRIVATE_KEY }}
+          LIT_DEBUG_JS_SDK_SERVER: true
         run: |
           go test -v ./...
 

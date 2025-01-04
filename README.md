@@ -22,6 +22,10 @@ Currently, the SDKs are authenticated with an "auth token" which is a private ke
 
 To manage user funds and PKPs, you will need to either set up some kind of delegation system, or figure out how to pass your user auth through to the SDK and the Lit Nodes. This is because typically, users interact with Lit via the JS SDK from a browser. Since Python and Go are typically run on servers, the direct "user to Lit Node" communication is not possible, and must pass through your server, which would therefore have the user's auth material. An end-to-end encryption solution is possible to implement as a user building on Lit, but there is no current reference implementation.
 
+## ENV Variables
+
+- `LIT_DEBUG_JS_SDK_SERVER`: Set to `true` to enable logging of the JS SDK server.
+
 ## How it works
 
 We run a localhost Node.js server that is used to interact with the Lit JS SDK. The server is started when the Python or Go SDK is initialized, and they talk to it over HTTP. The server is stopped when the Python or Go SDK is shutdown. The server is restarted if it crashes.

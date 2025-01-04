@@ -1,0 +1,4 @@
+github.com/LIT-Protocol/lit-polyglot-sdk/go/lit_go_sdk v1.0.0 h1:B733/v3L84tbe5VAexaiCXYFKDfe/UMHjtOC0SY3UQ8=
+github.com/LIT-Protocol/lit-polyglot-sdk/go/lit_go_sdk v1.0.0/go.mod h1:bwdJWQbC2jMWaE5gbD44GzNXdxQ5u275eIx5x+suuKw=
+github.com/joho/godotenv v1.5.1 h1:7eLL/+HRGLY0ldzfGMeQkb7vMd0as4CfYvUVzLqw0N0=
+github.com/joho/godotenv v1.5.1/go.mod h1:f4LDr5Voq0i2e/R5DDNOoa2zzDfwtkZa6DnEwAbqwq4=
