@@ -26,6 +26,8 @@ To manage user funds and PKPs, you will need to either set up some kind of deleg
 
 We run a localhost Node.js server that is used to interact with the Lit JS SDK. The server is started when the Python or Go SDK is initialized, and they talk to it over HTTP. The server is stopped when the Python or Go SDK is shutdown. The server is restarted if it crashes.
 
+The [js-sdk-server](./js-sdk-server/README.md) is a Node.js server that is used to interact with the Lit JS SDK. It is bundled into the Python and Go SDKs.
+
 ## Contributing
 
 We welcome contributions to this project. To get in contact, please [join the community](https://developer.litprotocol.com/support/intro).

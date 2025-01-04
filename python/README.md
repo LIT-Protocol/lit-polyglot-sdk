@@ -16,13 +16,10 @@ pip install -e .
 
 ### Authentication
 
-Before using the SDK, you'll need to set up authentication using a private key. You can either:
-1. Set the environment variable:
-```bash
-export LIT_POLYGLOT_SDK_TEST_PRIVATE_KEY=your_private_key_here
-```
+Before using the SDK, you'll need to set up authentication using a private key.
 
-2. Or provide it in your code:
+Provide it in your code:
+
 ```python
 from lit_python_sdk import connect
 
@@ -75,16 +72,19 @@ The wallet is a PKP-based wallet that lives across the Lit Nodes, and signing op
 For development and testing:
 
 1. Install test dependencies:
+
 ```bash
 pip install pytest
 ```
 
 2. Bundle the Node.js server dependencies:
+
 ```bash
-cd lit_python_sdk/nodejs && npm install
+cd js-sdk-server && npm install && npm run build
 ```
 
 3. Run tests:
+
 ```bash
 pytest
 ```
