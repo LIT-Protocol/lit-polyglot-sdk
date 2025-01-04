@@ -11,13 +11,18 @@ on:
     paths:
       - "go/**"
       - "js-sdk-server/**"
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: warp-ubuntu-latest-x64-2x
     strategy:
       matrix:
         go-version: ["1.23"]
-
+        max-parallel: 1
     steps:
       - uses: actions/checkout@v3
 

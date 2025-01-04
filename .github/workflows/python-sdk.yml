@@ -11,12 +11,18 @@ on:
     paths:
       - "python/**"
       - "js-sdk-server/**"
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: warp-ubuntu-latest-x64-2x
     strategy:
       matrix:
         python-version: ["3.9", "3.10", "3.11"]
+        max-parallel: 1
 
     steps:
       - uses: actions/checkout@v3
