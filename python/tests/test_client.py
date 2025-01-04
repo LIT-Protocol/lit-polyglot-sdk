@@ -13,10 +13,7 @@ client = connect()
 client.set_auth_token(os.getenv("LIT_POLYGLOT_SDK_TEST_PRIVATE_KEY"))
 
 
-def test_connect_and_execute():    
-    # Give the server a moment to fully initialize
-    time.sleep(2)
-    
+def test_execute():    
     # Execute a simple JavaScript code
     js_code = """
         (async () => {

@@ -11,13 +11,14 @@ on:
     paths:
       - "go/**"
       - "js-sdk-server/**"
+
 jobs:
   test:
     runs-on: warp-ubuntu-latest-x64-2x
     strategy:
+      max-parallel: 1
       matrix:
         go-version: ["1.23"]
-
     steps:
       - uses: actions/checkout@v3
 
@@ -46,7 +47,12 @@ jobs:
           LIT_POLYGLOT_SDK_TEST_PRIVATE_KEY: ${{ secrets.LIT_POLYGLOT_SDK_TEST_PRIVATE_KEY }}
         run: |
           go test -v ./...
+
+      - name: Print server logs
+        if: always()
+        working-directory: go/lit_go_sdk
+        run: |
           if [ -f server.log ]; then
-            echo "Server log contents:"
+            echo "JS SDKServer log contents:"
             cat server.log
           fi

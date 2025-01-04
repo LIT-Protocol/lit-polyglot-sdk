@@ -11,10 +11,12 @@ on:
     paths:
       - "python/**"
       - "js-sdk-server/**"
+
 jobs:
   test:
     runs-on: warp-ubuntu-latest-x64-2x
     strategy:
+      max-parallel: 1
       matrix:
         python-version: ["3.9", "3.10", "3.11"]
 
@@ -40,7 +42,12 @@ jobs:
           LIT_POLYGLOT_SDK_TEST_PRIVATE_KEY: ${{ secrets.LIT_POLYGLOT_SDK_TEST_PRIVATE_KEY }}
         run: |
           pytest tests/ -v
+
+      - name: Print server logs
+        if: always()
+        working-directory: python
+        run: |
           if [ -f lit_python_sdk/server.log ]; then
-            echo "Server log contents:"
+            echo "JS SDK Server log contents:"
             cat lit_python_sdk/server.log
           fi
