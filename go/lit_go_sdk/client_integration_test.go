@@ -3,7 +3,6 @@ package lit_go_sdk
 import (
 	"os"
 	"testing"
-	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -43,10 +42,7 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func TestIntegration_ConnectAndExecute(t *testing.T) {
-	// Give the server a moment to fully initialize
-	time.Sleep(2 * time.Second)
-
+func TestIntegration_Execute(t *testing.T) {
 	// Execute a simple JavaScript code
 	jsCode := `
 		(async () => {

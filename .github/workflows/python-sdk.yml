@@ -40,7 +40,12 @@ jobs:
           LIT_POLYGLOT_SDK_TEST_PRIVATE_KEY: ${{ secrets.LIT_POLYGLOT_SDK_TEST_PRIVATE_KEY }}
         run: |
           pytest tests/ -v
+
+      - name: Print server logs
+        if: always()
+        working-directory: python
+        run: |
           if [ -f lit_python_sdk/server.log ]; then
-            echo "Server log contents:"
+            echo "JS SDK Server log contents:"
             cat lit_python_sdk/server.log
           fi
