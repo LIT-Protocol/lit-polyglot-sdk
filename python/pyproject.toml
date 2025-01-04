@@ -4,9 +4,9 @@ build-backend = "hatchling.build"
 
 [project]
 name = "lit-python-sdk"
-version = "0.1.0"
+version = "1.0.0"
 authors = [
-    { name = "Your Name", email = "your.email@example.com" },
+    { name = "Chris Cassano", email = "chris@litprotocol.com" },
 ]
 description = "A Python SDK for executing JavaScript code via Node.js"
 readme = "README.md"
@@ -15,11 +15,12 @@ dependencies = [
     "requests>=2.25.0",
     "eth_account>=0.13.3",
     "python-dotenv>=1.0.1",
+    "nodejs-bin>=18.4.0a4"
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/yourusername/lit-python-sdk"
-"Bug Tracker" = "https://github.com/yourusername/lit-python-sdk/issues"
+"Homepage" = "https://github.com/lit-protocol/lit-python-sdk"
+"Bug Tracker" = "https://github.com/lit-protocol/lit-python-sdk/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["lit_python_sdk"]
