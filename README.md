@@ -35,3 +35,7 @@ We welcome contributions to this project. To get in contact, please [join the co
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Known development issues
+
+When running the tests on CI, all the tests share the same Lit Auth token which is a wallet. This wallet makes transactions on the Chronicle L3 Blockchain. Since the JS and Python tests run in parallel, you can run into nonce issues where a nonce was already used. This is a race condition and re-running the tests usually fixes it.
