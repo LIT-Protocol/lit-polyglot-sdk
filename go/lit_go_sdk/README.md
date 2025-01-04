@@ -10,7 +10,7 @@ This is the Go SDK for Lit Protocol. It provides a Go interface to interact with
 ## Installation
 
 ```bash
-go get github.com/your-org/lit-go-sdk
+go get github.com/LIT-Protocol/lit-polyglot-sdk/go/lit_go_sdk
 ```
 
 ## Usage
@@ -22,12 +22,12 @@ package main
 
 import (
     "fmt"
-    "lit_go_sdk"
+    "github.com/LIT-Protocol/lit-polyglot-sdk/go/lit_go_sdk"
 )
 
 func main() {
-    // Create a new client (default port is 3092)
-    client, err := lit_go_sdk.NewLitClient(0)
+    // Create a new client
+    client, err := lit_go_sdk.NewLitClient()
     if err != nil {
         panic(err)
     }

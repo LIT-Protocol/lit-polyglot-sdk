@@ -20,7 +20,9 @@ git add go.mod go.sum
 git commit -m "chore: update dependencies for $VERSION" || true
 
 # Create and push the tag
-git tag "go/$VERSION"
-git push origin "go/$VERSION"
+git tag "$VERSION"
+git push origin "$VERSION"
 
 echo "Published version $VERSION of the Go SDK" 
+
+GOPROXY=proxy.golang.org go list -m github.com/LIT-Protocol/lit-polyglot-sdk/go/lit_go_sdk@$VERSION
