@@ -10,10 +10,6 @@ on:
     paths:
       - "js-sdk-server/**"
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
-
 jobs:
   test:
     runs-on: warp-ubuntu-latest-x64-2x
