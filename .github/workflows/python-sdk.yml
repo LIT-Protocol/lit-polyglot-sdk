@@ -16,6 +16,7 @@ jobs:
   test:
     runs-on: warp-ubuntu-latest-x64-2x
     strategy:
+      max-parallel: 1
       matrix:
         python-version: ["3.9", "3.10", "3.11"]
 
