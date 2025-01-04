@@ -20,8 +20,8 @@ git add go.mod go.sum
 git commit -m "chore: update go dependencies for $VERSION" || true
 
 # Create and push the tag
-git tag "lit_go_sdk/$VERSION"
-git push origin "lit_go_sdk/$VERSION"
+git tag "go/lit_go_sdk/$VERSION"
+git push origin "go/lit_go_sdk/$VERSION"
 
 echo "Published version $VERSION of the Go SDK" 
 
