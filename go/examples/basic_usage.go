@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 
@@ -14,23 +13,31 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to create Lit client: %v", err)
 	}
+	defer client.Close()
 
-	// Create a context
-	ctx := context.Background()
+	// Execute a simple JavaScript code
+	jsCode := `
+		(async () => {
+			console.log("Hello from Lit Protocol!");
+			Lit.Actions.setResponse({response: "Hello, World!"});
+		})()
+	`
 
-	// Connect to the Lit nodes
-	if err := client.Connect(ctx); err != nil {
-		log.Fatalf("Failed to connect to Lit nodes: %v", err)
-	}
-	defer client.Disconnect()
-
-	fmt.Println("Successfully connected to Lit Protocol!")
-
-	// Get the latest network config
-	config, err := client.GetNetworkConfig(ctx)
+	result, err := client.ExecuteJS(jsCode)
 	if err != nil {
-		log.Fatalf("Failed to get network config: %v", err)
+		log.Fatalf("Failed to execute JS: %v", err)
 	}
 
-	fmt.Printf("Current network has %d nodes\n", len(config.NetworkPubKeySet))
+	// Print the execution results
+	fmt.Printf("Execution success: %v\n", result["success"])
+	fmt.Printf("Response: %v\n", result["response"])
+	fmt.Printf("Logs: %v\n", result["logs"])
+
+	// Create a new wallet
+	wallet, err := client.CreateWallet()
+	if err != nil {
+		log.Fatalf("Failed to create wallet: %v", err)
+	}
+
+	fmt.Printf("\nCreated new wallet with address: %s\n", wallet["address"])
 }

@@ -42,9 +42,13 @@ func (s *NodeServer) Start() error {
 	}
 
 	// Create log file
-	logFile, err := os.OpenFile(filepath.Join(sdkDir, "server.log"), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
-	if err != nil {
-		return fmt.Errorf("failed to create log file: %w", err)
+	var logFile *os.File
+	if os.Getenv("LIT_DEBUG_JS_SDK_SERVER") != "" {
+		var err error
+		logFile, err = os.OpenFile(filepath.Join(sdkDir, "server.log"), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+		if err != nil {
+			return fmt.Errorf("failed to create log file: %w", err)
+		}
 	}
 	s.logFile = logFile
 
