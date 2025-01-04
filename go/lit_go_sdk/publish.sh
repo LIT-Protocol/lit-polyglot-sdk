@@ -17,7 +17,7 @@ go mod tidy
 
 # Commit any changes to go.mod and go.sum
 git add go.mod go.sum
-git commit -m "chore: update dependencies for $VERSION" || true
+git commit -m "chore: update go dependencies for $VERSION" || true
 
 # Create and push the tag
 git tag "$VERSION"
