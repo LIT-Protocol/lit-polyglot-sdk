@@ -41,17 +41,150 @@ app.use((req, res, next) => {
   next();
 });
 
+// Create a new LitNodeClient
+app.post("/litNodeClient/new", async (req, res) => {
+  const {
+    alertWhenUnauthorized,
+    checkNodeAttestation,
+    connectTimeout,
+    contractContext,
+    debug,
+    litNetwork,
+    minNodeCount,
+    rpcUrl,
+    storageProvider,
+  } = req.body;
+
+  app.locals.litNodeClient = new LitJsSdk.LitNodeClientNodeJs({
+    alertWhenUnauthorized,
+    checkNodeAttestation,
+    connectTimeout,
+    contractContext,
+    debug,
+    litNetwork,
+    minNodeCount,
+    rpcUrl,
+    storageProvider,
+  });
+
+  await app.locals.litNodeClient.connect();
+
+  res.json({ success: true });
+});
+
+// Connect to the LitNodeClient
+app.post("/litNodeClient/connect", async (req, res) => {
+  if (!app.locals.litNodeClient) {
+    return res.status(400).json({
+      success: false,
+      error: "LitNodeClient not initialized",
+    });
+  }
+  await app.locals.litNodeClient.connect();
+  res.json({ success: true });
+});
+
+// Disconnect from the LitNodeClient
+app.post("/litNodeClient/disconnect", (req, res) => {
+  app.locals.litNodeClient.disconnect();
+  res.json({ success: true });
+});
+
+// Get a property from the LitNodeClient
+app.post("/litNodeClient/getProperty", (req, res) => {
+  const { property } = req.body;
+  res.json({ success: true, property: app.locals.litNodeClient[property] });
+});
+
+// Execute JavaScript code on the LitNodeClient
+app.post("/litNodeClient/executeJs", async (req, res) => {
+  const {
+    authMethods,
+    code,
+    ipfsId,
+    ipfsOptions,
+    jsParams,
+    responseStrategy,
+    sessionSigs,
+    useSingleNode,
+  } = req.body;
+
+  const response = await app.locals.litNodeClient.executeJs({
+    authMethods,
+    code,
+    ipfsId,
+    ipfsOptions,
+    jsParams,
+    responseStrategy,
+    sessionSigs,
+    useSingleNode,
+  });
+  res.json(response);
+});
+
+// Sign something using a PKP
+app.post("/litNodeClient/pkpSign", async (req, res) => {
+  const { authMethods, pubKey, sessionSigs, toSign } = req.body;
+  const signingResult = await app.locals.litNodeClient.pkpSign({
+    authMethods,
+    pubKey,
+    sessionSigs,
+    toSign,
+  });
+  res.json({ signature: signingResult });
+});
+
+// Create a new LitContracts client
+app.post("/litContractsClient/new", async (req, res) => {
+  const { privateKey, litNodeClient, network, debug } = req.body;
+  app.locals.litContractClient = new LitContracts({
+    signer: new ethers.Wallet(
+      privateKey,
+      new ethers.providers.JsonRpcProvider(LIT_RPC.CHRONICLE_YELLOWSTONE)
+    ),
+    network,
+    debug,
+  });
+  await app.locals.litContractClient.connect();
+  res.json({ success: true });
+});
+
+// Mint a new PKP with an auth method
+app.post("/litContractsClient/mintWithAuth", async (req, res) => {
+  const { authMethod, authMethodId, gasLimit, pubkey, scopes } = req.body;
+  const mintInfo = await app.locals.litContractClient.mintWithAuth({
+    authMethod,
+    authMethodId,
+    gasLimit,
+    pubkey,
+    scopes,
+  });
+  res.json(mintInfo);
+});
+
 // set the wallet used to talk to the Lit Nodes
-app.post("/setAuthToken", (req, res) => {
+app.post("/setAuthToken", async (req, res) => {
+  if (!app.locals.litNodeClient) {
+    return res.status(400).json({
+      success: false,
+      error: "LitNodeClient not initialized",
+    });
+  }
   const { authToken } = req.body;
   app.locals.ethersWallet = new ethers.Wallet(
     authToken,
     new ethers.providers.JsonRpcProvider(LIT_RPC.CHRONICLE_YELLOWSTONE)
   );
+  app.locals.litContractClient = new LitContracts({
+    signer: app.locals.ethersWallet,
+    network: app.locals.litNodeClient.config.litNetwork,
+    debug: true,
+  });
+  await app.locals.litContractClient.connect();
   res.json({ success: true });
 });
 
-// generate session key and get session delegation
+// Check if the LitNodeClient is ready
 app.post("/isReady", (req, res) => {
   try {
     res.json({
@@ -65,7 +198,20 @@ app.post("/isReady", (req, res) => {
   }
 });
 
-app.post("/executeJs", async (req, res) => {
+// Execute JavaScript code on the LitNodeClient with an auth token
+app.post("/executeJsWithAuthToken", async (req, res) => {
+  if (!app.locals.litNodeClient) {
+    return res.status(400).json({
+      success: false,
+      error: "LitNodeClient not initialized",
+    });
+  }
+  if (!app.locals.ethersWallet) {
+    return res.status(400).json({
+      success: false,
+      error: "Ethers wallet not initialized",
+    });
+  }
   try {
     const { code, jsParams } = req.body;
 
@@ -97,12 +243,25 @@ app.post("/executeJs", async (req, res) => {
 });
 
 app.post("/createWallet", async (req, res) => {
-  const contractClient = new LitContracts({
-    signer: app.locals.ethersWallet,
-    litNodeClient: app.locals.litNodeClient,
-    network: LitNetwork.DatilDev,
-    debug: true,
-  });
+  if (!app.locals.litNodeClient) {
+    return res.status(400).json({
+      success: false,
+      error: "LitNodeClient not initialized",
+    });
+  }
+  if (!app.locals.ethersWallet) {
+    return res.status(400).json({
+      success: false,
+      error: "Ethers wallet not initialized",
+    });
+  }
+  if (!app.locals.litContractClient) {
+    return res.status(400).json({
+      success: false,
+      error: "LitContracts client not initialized",
+    });
+  }
+  const contractClient = app.locals.litContractClient;
   await contractClient.connect();
 
   const toSign = await createSiweMessage({
@@ -175,6 +334,7 @@ app.listen(port, async () => {
     litNetwork: LitNetwork.DatilDev,
   });
   await app.locals.litNodeClient.connect();
+
   // see if we can load the pkp from local storage
   const pkp = localStorage.getItem("pkp");
   if (pkp) {
