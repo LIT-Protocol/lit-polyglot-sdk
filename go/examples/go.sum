@@ -6,3 +6,5 @@ github.com/joho/godotenv v1.5.1 h1:7eLL/+HRGLY0ldzfGMeQkb7vMd0as4CfYvUVzLqw0N0=
 github.com/joho/godotenv v1.5.1/go.mod h1:f4LDr5Voq0i2e/R5DDNOoa2zzDfwtkZa6DnEwAbqwq4=
 github.com/lit-protocol/lit-polyglot-sdk/go/lit_go_sdk v1.1.0 h1:+juWefTWCO7MYgIbLaFxS3oxltY84hvBI96vK1r9E6E=
 github.com/lit-protocol/lit-polyglot-sdk/go/lit_go_sdk v1.1.0/go.mod h1:AmEq9yFc5Ywt1PatSoeRlHiGsNcaE9HpxPvJ8HNXEj8=
+github.com/lit-protocol/lit-polyglot-sdk/go/lit_go_sdk v1.1.1 h1:cOfKvDEI+LIeBTv5TZdgRF3lVLJXkISYjehvA8qX0ng=
+github.com/lit-protocol/lit-polyglot-sdk/go/lit_go_sdk v1.1.1/go.mod h1:AmEq9yFc5Ywt1PatSoeRlHiGsNcaE9HpxPvJ8HNXEj8=

@@ -15,5 +15,6 @@
 
 # Go SDK
 
+- write to cwd with the session storage, or remove session storage... probably write to cwd is easiest
 - expose constants for all the abilities and resources and lit networks and scopes and other items
 - fix examples and tests to use these constants
