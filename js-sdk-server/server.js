@@ -90,9 +90,11 @@ app.post('/litNodeClient/getSessionSigs', async (req, res) => {
     });
   }
 
+  console.log('req.body for getSessionSigs', req.body);
+
   let { chain, expiration, resourceAbilityRequests } = req.body;
 
-  // console.log('incoming resourceAbilityRequests', resourceAbilityRequests);
+  console.log('incoming resourceAbilityRequests', resourceAbilityRequests);
 
   resourceAbilityRequests = deserializeResourceAbilityRequests(
     resourceAbilityRequests
@@ -155,6 +157,7 @@ app.post('/litNodeClient/executeJs', async (req, res) => {
 // Sign something using a PKP
 app.post('/litNodeClient/pkpSign', async (req, res) => {
   const { authMethods, pubKey, sessionSigs, toSign } = req.body;
+  console.log('req.body for pkpSign', req.body);
   const signingResult = await app.locals.litNodeClient.pkpSign({
     authMethods,
     pubKey,
@@ -167,11 +170,12 @@ app.post('/litNodeClient/pkpSign', async (req, res) => {
 // Create a new LitContracts client
 app.post('/litContractsClient/new', async (req, res) => {
   const { privateKey, litNodeClient, network, debug } = req.body;
+  app.locals.ethersWallet = new ethers.Wallet(
+    privateKey,
+    new ethers.providers.JsonRpcProvider(LIT_RPC.CHRONICLE_YELLOWSTONE)
+  );
   app.locals.litContractClient = new LitContracts({
-    signer: new ethers.Wallet(
-      privateKey,
-      new ethers.providers.JsonRpcProvider(LIT_RPC.CHRONICLE_YELLOWSTONE)
-    ),
+    signer: app.locals.ethersWallet,
     network,
     debug,
   });
@@ -182,6 +186,7 @@ app.post('/litContractsClient/new', async (req, res) => {
 // Mint a new PKP with an auth method
 app.post('/litContractsClient/mintWithAuth', async (req, res) => {
   const { authMethod, scopes } = req.body;
+  console.log('req.body for mintWithAuth', req.body);
   const mintInfo = await app.locals.litContractClient.mintWithAuth({
     authMethod,
     scopes,
@@ -232,7 +237,8 @@ app.post('/authHelpers/createSiweMessage', async (req, res) => {
       error: 'LitNodeClient not initialized',
     });
   }
-  let { uri, expiration, resources, walletAddress, litNodeClient } = req.body;
+  console.log('req.body for createSiweMessage', req.body);
+  let { uri, expiration, resources, walletAddress } = req.body;
   resources = deserializeResourceAbilityRequests(resources);
   const nonce = await app.locals.litNodeClient.getLatestBlockhash();
   const siweMessage = await createSiweMessage({
