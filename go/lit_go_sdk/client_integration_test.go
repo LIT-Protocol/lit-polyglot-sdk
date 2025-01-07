@@ -262,7 +262,7 @@ func TestIntegration_ContractsAndAuth(t *testing.T) {
 		t.Fatal("Expected sessionSigs in response")
 	}
 
-	toSignHex := "0xadb20420bde8cda6771249188817098fca8ccf8eef2120a31e3f64f5812026bf"
+	toSignHex := "0xadb20420bde8cda6771249188817098fca8ccf8eef2120a31e3f64f5812026bf" // Example hex string
 	hexStr := strings.TrimPrefix(toSignHex, "0x")
 	bytes, _ := hex.DecodeString(hexStr)
 	toSign := make([]int, len(bytes))
@@ -271,7 +271,7 @@ func TestIntegration_ContractsAndAuth(t *testing.T) {
 	}
 
 	signResult, err := integrationClient.PKPSign(PKPSignParams{
-		PubKey:      "0x" + pkp["publicKey"].(string),
+		PubKey:      pkp["publicKey"].(string),
 		ToSign:      toSign,
 		SessionSigs: sessionSigs,
 	})
