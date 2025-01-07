@@ -283,3 +283,8 @@ func TestIntegration_ContractsAndAuth(t *testing.T) {
 		t.Error("Expected signature in response")
 	}
 }
+
+func TestIntegration_GetLogs(t *testing.T) {
+	logs := integrationClient.server.GetLogs()
+	t.Logf("Logs: %s", logs)
+}
