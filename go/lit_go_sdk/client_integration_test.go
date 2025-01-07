@@ -287,4 +287,7 @@ func TestIntegration_ContractsAndAuth(t *testing.T) {
 func TestIntegration_GetLogs(t *testing.T) {
 	logs := integrationClient.server.GetLogs()
 	t.Logf("Logs: %s", logs)
+	if logs == "" {
+		t.Error("Expected logs to be non-empty")
+	}
 }
