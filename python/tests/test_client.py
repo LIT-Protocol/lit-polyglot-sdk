@@ -1,10 +1,11 @@
 import pytest
 import time
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
 from pathlib import Path
 from lit_python_sdk import connect
+from eth_account import Account
 
 # Load environment variables from .env file in the root directory
 dotenv_path = Path(__file__).parent.parent.parent / '.env'
@@ -13,6 +14,15 @@ load_dotenv(dotenv_path)
 # Create a single client for all tests
 client = connect()
 client.set_auth_token(os.getenv("LIT_POLYGLOT_SDK_TEST_PRIVATE_KEY"))
+
+# get wallet address from the private key
+private_key = os.getenv("LIT_POLYGLOT_SDK_TEST_PRIVATE_KEY")
+if not private_key:
+    raise ValueError("LIT_POLYGLOT_SDK_TEST_PRIVATE_KEY environment variable is required")
+if not private_key.startswith("0x"):
+    private_key = "0x" + private_key
+account = Account.from_key(private_key)
+wallet_address = account.address
 
 def test_basic_flow():
     # Test New
@@ -37,7 +47,7 @@ def test_basic_flow():
 
 def test_execute_js():
     # First get session sigs
-    expiration = (datetime.now() + timedelta(minutes=10)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    expiration = (datetime.now(timezone.utc) + timedelta(minutes=10)).strftime("%Y-%m-%dT%H:%M:%SZ")
     session_sigs_result = client.get_session_sigs(
         chain="ethereum",
         expiration=expiration,
@@ -76,7 +86,7 @@ def test_contracts_and_auth():
     assert result["success"] == True, "Expected success to be True"
 
     # Create SIWE message
-    expiration = (datetime.now() + timedelta(minutes=10)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    expiration = (datetime.now(timezone.utc) + timedelta(minutes=10)).strftime("%Y-%m-%dT%H:%M:%SZ")
     siwe_result = client.create_siwe_message(
         uri="http://localhost:3092",
         expiration=expiration,
@@ -87,7 +97,7 @@ def test_contracts_and_auth():
             },
             "ability": "lit-action-execution",
         }],
-        wallet_address=os.getenv("LIT_POLYGLOT_SDK_TEST_WALLET_ADDRESS")
+        wallet_address=wallet_address
     )
     assert "siweMessage" in siwe_result, "Expected siweMessage in response"
 
@@ -107,7 +117,7 @@ def test_contracts_and_auth():
     pkp = mint_result["pkp"]
 
     # Test PKPSign
-    expiration = (datetime.now() + timedelta(minutes=10)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    expiration = (datetime.now(timezone.utc) + timedelta(minutes=10)).strftime("%Y-%m-%dT%H:%M:%SZ")
     session_sigs_result = client.get_session_sigs(
         chain="ethereum",
         expiration=expiration,

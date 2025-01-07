@@ -1,8 +1,9 @@
 import requests
 import subprocess
 import time
-from .server import NodeServer
+import json
 from typing import Dict, Any, List, Optional
+from .server import NodeServer
 
 class LitClient:
     def __init__(self, port=3092):
@@ -158,6 +159,8 @@ class LitClient:
 
     def mint_with_auth(self, auth_method: Dict[str, Any], scopes: List[int]) -> Dict[str, Any]:
         """Mints a new PKP with authentication"""
+        if isinstance(auth_method["accessToken"], dict):
+            auth_method["accessToken"] = json.dumps(auth_method["accessToken"])
         return self._post("/litContractsClient/mintWithAuth", {
             "authMethod": auth_method,
             "scopes": scopes
