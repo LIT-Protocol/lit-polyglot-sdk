@@ -22,8 +22,8 @@ const {
   deserializeResourceAbilityRequests,
 } = require('./utils');
 if (typeof localStorage === 'undefined' || localStorage === null) {
-  var LocalStorage = require('node-localstorage').LocalStorage;
-  localStorage = new LocalStorage('./lit-session-storage');
+  var LocalStorage = require('localstorage-memory');
+  localStorage = LocalStorage;
 }
 
 const app = express();
