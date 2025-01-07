@@ -13,7 +13,7 @@ This is the Go SDK for Lit Protocol. It provides a Go interface to interact with
 go get github.com/LIT-Protocol/lit-polyglot-sdk/go/lit_go_sdk
 ```
 
-## Usage
+## Basic Usage
 
 Here's a basic example of how to use the SDK:
 
@@ -27,71 +27,145 @@ import (
 
 func main() {
     // Create a new client
-    client, err := lit_go_sdk.NewLitClient()
+    client, err := lit_go_sdk.NewLitNodeClient()
     if err != nil {
         panic(err)
     }
     defer client.Close()
 
-    // Set auth token
-    result, err := client.SetAuthToken("your-auth-token")
+    // Set auth token (your private key)
+    _, err = client.SetAuthToken("your-private-key")
     if err != nil {
         panic(err)
     }
-    fmt.Printf("Set auth token result: %v\n", result)
 
-    // Create a wallet
-    wallet, err := client.CreateWallet()
+    // Initialize the client with network config
+    _, err = client.New(lit_go_sdk.LitNodeClientConfig{
+        LitNetwork: "datil-test", // or your preferred network
+        Debug:      true,
+    })
     if err != nil {
         panic(err)
     }
-    fmt.Printf("Created wallet: %v\n", wallet)
 
-    // Get PKP
-    pkp, err := client.GetPKP()
+    // Connect to the Lit network
+    _, err = client.Connect()
     if err != nil {
         panic(err)
     }
-    fmt.Printf("PKP: %v\n", pkp)
-
-    // Sign a message
-    signature, err := client.Sign("Hello, World!")
-    if err != nil {
-        panic(err)
-    }
-    fmt.Printf("Signature: %v\n", signature)
 }
+```
+
+## Executing JavaScript on the Lit Network
+
+You can execute JavaScript code across the Lit Network. First, get session signatures, then execute the code:
+
+```go
+// Get session signatures
+sessionSigsResult, err := client.GetSessionSigs(lit_go_sdk.SessionSigsParams{
+    Chain:      "ethereum",
+    Expiration: time.Now().Add(10 * time.Minute).Format(time.RFC3339),
+    ResourceAbilityRequests: []interface{}{
+        map[string]interface{}{
+            "resource": map[string]interface{}{
+                "resource":       "*",
+                "resourcePrefix": "lit-litaction",
+            },
+            "ability": "lit-action-execution",
+        },
+    },
+})
+
+sessionSigs := sessionSigsResult["sessionSigs"].(map[string]interface{})
+
+// Execute JavaScript
+result, err := client.ExecuteJs(lit_go_sdk.ExecuteJsParams{
+    Code: `
+        (async () => {
+            console.log("Testing executeJs endpoint");
+            Lit.Actions.setResponse({response: "Test successful"});
+        })()
+    `,
+    JsParams:    map[string]interface{}{},
+    SessionSigs: sessionSigs,
+})
+```
+
+## Working with PKPs (Programmable Key Pairs)
+
+The SDK supports minting and using PKPs. Here's how to mint a new PKP using ETH wallet authentication:
+
+```go
+// Create SIWE message
+siweResult, err := client.CreateSiweMessage(lit_go_sdk.CreateSiweMessageParams{
+    URI:           "http://localhost:3092",
+    Expiration:    time.Now().Add(10 * time.Minute).Format(time.RFC3339),
+    Resources: []interface{}{
+        map[string]interface{}{
+            "resource": map[string]interface{}{
+                "resource":       "*",
+                "resourcePrefix": "lit-litaction",
+            },
+            "ability": "lit-action-execution",
+        },
+    },
+    WalletAddress: "your-eth-wallet-address",
+})
+
+// Generate auth signature
+authSigResult, err := client.GenerateAuthSig(siweResult["siweMessage"].(string))
+
+// Mint PKP
+mintResult, err := client.MintWithAuth(lit_go_sdk.MintWithAuthParams{
+    AuthMethod: map[string]interface{}{
+        "authMethodType": 1, // EthWallet
+        "accessToken":    authSigResult["authSig"],
+    },
+    Scopes: []int{1},
+})
 ```
 
 ## API Reference
 
-### NewLitClient() (\*LitClient, error)
+### NewLitNodeClient() (\*LitNodeClient, error)
 
 Creates a new Lit Protocol client.
 
 ### SetAuthToken(authToken string) (map[string]interface{}, error)
 
-Sets the authentication token for the Lit Protocol.
+Sets the authentication token (private key) for the Lit Protocol.
 
-### ExecuteJS(code string) (map[string]interface{}, error)
+### New(config LitNodeClientConfig) (map[string]interface{}, error)
 
-Executes JavaScript code on the Node.js server.
+Initializes the client with network configuration.
 
-### CreateWallet() (map[string]interface{}, error)
+### Connect() (map[string]interface{}, error)
 
-Creates a new wallet.
+Connects to the Lit network.
 
-### GetPKP() (map[string]interface{}, error)
+### ExecuteJs(params ExecuteJsParams) (map[string]interface{}, error)
 
-Gets the PKP (Programmable Key Pair).
+Executes JavaScript code on the Lit network.
 
-### Sign(toSign string) (map[string]interface{}, error)
+### GetSessionSigs(params SessionSigsParams) (map[string]interface{}, error)
 
-Signs a message with the PKP.
+Gets session signatures for authentication.
+
+### CreateSiweMessage(params CreateSiweMessageParams) (map[string]interface{}, error)
+
+Creates a Sign-In with Ethereum message.
+
+### GenerateAuthSig(toSign string) (map[string]interface{}, error)
+
+Generates an authentication signature.
+
+### MintWithAuth(params MintWithAuthParams) (map[string]interface{}, error)
+
+Mints a new PKP with authentication.
 
 ### Close() error
 
-Closes the client and stops the Node.js server if it was started by this client.
+Closes the client and stops the Node.js server.
 
 ## Error Handling
 
