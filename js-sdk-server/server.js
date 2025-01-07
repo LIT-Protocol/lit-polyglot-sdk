@@ -49,6 +49,16 @@ app.post('/litNodeClient/new', async (req, res) => {
 
   await app.locals.litNodeClient.connect();
 
+  if (app.locals.litContractClient) {
+    // create a new lit contracts client with this same config
+    app.locals.litContractClient = new LitContracts({
+      signer: app.locals.ethersWallet,
+      network: app.locals.litNodeClient.config.litNetwork,
+      debug: true,
+    });
+    await app.locals.litContractClient.connect();
+  }
+
   res.json({ success: true });
 });
 
