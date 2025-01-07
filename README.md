@@ -1,6 +1,6 @@
-# Lit Polyglot SDK Monorepo
+# Experimental Lit Polyglot SDK Monorepo
 
-This monorepo contains the Lit Polyglot SDK for Python and Go. These are wrapper SDKs around the Lit JS SDK.
+This monorepo contains the Lit Polyglot SDK for Python and Go. These are wrapper SDKs around the Lit JS SDK. This project is an experimental work in progress and is not yet ready for production use.
 
 ## Python SDK
 
