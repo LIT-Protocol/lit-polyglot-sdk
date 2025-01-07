@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -74,6 +75,21 @@ func (c *LitNodeClient) SetAuthToken(authToken string) (map[string]interface{}, 
 	return c.post("/setAuthToken", payload)
 }
 
+func (c *LitNodeClient) PrintLast50LogLines() {
+	logs := c.server.GetLogs()
+
+	fmt.Println("=== Start JS SDK Server Logs ===")
+	// Get all logs and split into lines
+	logLines := strings.Split(logs, "\n")
+	// Get last 50 lines (or all if less than 50)
+	start := len(logLines)
+	if start > 50 {
+		start = len(logLines) - 50
+	}
+	fmt.Println(strings.Join(logLines[start:], "\n"))
+	fmt.Println("=== End JS SDK Server Logs ===")
+}
+
 // post is a helper function to make POST requests
 func (c *LitNodeClient) post(endpoint string, payload interface{}) (map[string]interface{}, error) {
 	var body bytes.Buffer
@@ -89,12 +105,14 @@ func (c *LitNodeClient) post(endpoint string, payload interface{}) (map[string]i
 		&body,
 	)
 	if err != nil {
+		c.PrintLast50LogLines()
 		return nil, err
 	}
 	defer resp.Body.Close()
 
 	var result map[string]interface{}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		c.PrintLast50LogLines()
 		return nil, err
 	}
 	return result, nil
