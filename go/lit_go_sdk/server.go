@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"sync"
 )
 
@@ -141,7 +142,14 @@ func (s *NodeServer) Start() error {
 		if err != nil {
 			fmt.Printf("\n=== Node.js Server Crashed ===\nError: %v\n", err)
 
-			fmt.Println(s.logs.String())
+			// Get all logs and split into lines
+			logLines := strings.Split(s.logs.String(), "\n")
+			// Get last 50 lines (or all if less than 50)
+			start := len(logLines)
+			if start > 50 {
+				start = len(logLines) - 50
+			}
+			fmt.Println(strings.Join(logLines[start:], "\n"))
 			fmt.Println("=== End Server Logs ===")
 		}
 	}()
