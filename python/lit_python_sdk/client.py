@@ -2,6 +2,7 @@ import requests
 import subprocess
 import time
 from .server import NodeServer
+from typing import Dict, Any, List, Optional
 
 class LitClient:
     def __init__(self, port=3092):
@@ -38,37 +39,142 @@ class LitClient:
                 time.sleep(0.1)
                 
         raise TimeoutError("Server failed to start within timeout period")
-    
-    def set_auth_token(self, auth_token: str) -> dict:
-        """Sets the auth token on the Node.js server"""
-        response = requests.post(
-            f"http://localhost:{self.port}/setAuthToken",
-            json={"authToken": auth_token},
-        )
-        return response.json()
 
-    def execute_js(self, code: str) -> dict:
-        """Executes JavaScript code on the Node.js server"""
-        response = requests.post(
-            f"http://localhost:{self.port}/executeJs",
-            json={"code": code}
-        )
-        return response.json()
-    
-    def create_wallet(self) -> dict:
-        """Creates a new wallet on the Node.js server"""
-        response = requests.post(f"http://localhost:{self.port}/createWallet")
-        return response.json()
-    
-    def get_pkp(self) -> dict:
-        """Gets the PKP from the Node.js server"""
-        response = requests.get(f"http://localhost:{self.port}/pkp")
-        return response.json()
-    
-    def sign(self, to_sign: str) -> dict:
-        """Signs a message with a PKP"""
-        response = requests.post(f"http://localhost:{self.port}/sign", json={"toSign": to_sign})
-        return response.json()
+    def _post(self, endpoint: str, payload: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Helper function to make POST requests"""
+        try:
+            response = requests.post(
+                f"http://localhost:{self.port}{endpoint}",
+                json=payload
+            )
+            return response.json()
+        except Exception as e:
+            if self.server:
+                logs = self.server.logs.get_contents()
+                last_50_lines = '\n'.join(logs.splitlines()[-50:])
+                print("\n=== Last 50 lines of server logs ===\n")
+                print(last_50_lines)
+            raise
+
+    def set_auth_token(self, auth_token: str) -> Dict[str, Any]:
+        """Sets the auth token on the Node.js server"""
+        return self._post("/setAuthToken", {"authToken": auth_token})
+
+    def new(
+        self,
+        lit_network: str,
+        alert_when_unauthorized: bool = None,
+        check_node_attestation: bool = None,
+        connect_timeout: int = None,
+        contract_context: Dict[str, Any] = None,
+        debug: bool = None,
+        default_auth_callback: Any = None,
+        min_node_count: int = None,
+        rpc_url: str = None,
+        storage_provider: Any = None
+    ) -> Dict[str, Any]:
+        """Initializes a new LitNodeClient instance on the server
+        
+        Args:
+            lit_network: The Lit network to connect to
+            alert_when_unauthorized: Whether to alert when unauthorized
+            check_node_attestation: Whether to check node attestation
+            connect_timeout: Connection timeout in milliseconds
+            contract_context: Contract context configuration
+            debug: Enable debug logging
+            default_auth_callback: Default callback for auth requests
+            min_node_count: Minimum number of nodes required
+            rpc_url: Custom RPC URL
+            storage_provider: Custom storage provider
+        """
+        params = {
+            "litNetwork": lit_network,
+        }
+        
+        if alert_when_unauthorized is not None:
+            params["alertWhenUnauthorized"] = alert_when_unauthorized
+        if check_node_attestation is not None:
+            params["checkNodeAttestation"] = check_node_attestation
+        if connect_timeout is not None:
+            params["connectTimeout"] = connect_timeout
+        if contract_context is not None:
+            params["contractContext"] = contract_context
+        if debug is not None:
+            params["debug"] = debug
+        if default_auth_callback is not None:
+            params["defaultAuthCallback"] = default_auth_callback
+        if min_node_count is not None:
+            params["minNodeCount"] = min_node_count
+        if rpc_url is not None:
+            params["rpcUrl"] = rpc_url
+        if storage_provider is not None:
+            params["storageProvider"] = storage_provider
+
+        return self._post("/litNodeClient/new", params)
+
+    def connect(self) -> Dict[str, Any]:
+        """Connects to the Lit network"""
+        return self._post("/litNodeClient/connect")
+
+    def get_property(self, property_name: str) -> Dict[str, Any]:
+        """Gets a property from the LitNodeClient"""
+        return self._post("/litNodeClient/getProperty", {"property": property_name})
+
+    def execute_js(self, code: str, js_params: Dict[str, Any] = None, session_sigs: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Executes JavaScript code on the Lit network"""
+        return self._post("/litNodeClient/executeJs", {
+            "code": code,
+            "jsParams": js_params or {},
+            "sessionSigs": session_sigs or {}
+        })
+
+    def get_session_sigs(self, chain: str, expiration: str, resource_ability_requests: List[Any]) -> Dict[str, Any]:
+        """Gets session signatures"""
+        return self._post("/litNodeClient/getSessionSigs", {
+            "chain": chain,
+            "expiration": expiration,
+            "resourceAbilityRequests": resource_ability_requests
+        })
+
+    def pkp_sign(self, pub_key: str, to_sign: List[int], session_sigs: Dict[str, Any]) -> Dict[str, Any]:
+        """Signs data using a PKP"""
+        return self._post("/litNodeClient/pkpSign", {
+            "pubKey": pub_key,
+            "toSign": to_sign,
+            "sessionSigs": session_sigs
+        })
+
+    def disconnect(self) -> Dict[str, Any]:
+        """Disconnects from the Lit network"""
+        return self._post("/litNodeClient/disconnect")
+
+    def new_lit_contracts_client(self, private_key: str, network: str, debug: bool = False) -> Dict[str, Any]:
+        """Initializes a new LitContractsClient"""
+        return self._post("/litContractsClient/new", {
+            "privateKey": private_key,
+            "network": network,
+            "debug": debug
+        })
+
+    def mint_with_auth(self, auth_method: Dict[str, Any], scopes: List[int]) -> Dict[str, Any]:
+        """Mints a new PKP with authentication"""
+        return self._post("/litContractsClient/mintWithAuth", {
+            "authMethod": auth_method,
+            "scopes": scopes
+        })
+
+    def create_siwe_message(self, uri: str, expiration: str, resources: List[Any], wallet_address: str) -> Dict[str, Any]:
+        """Creates a SIWE message"""
+        return self._post("/authHelpers/createSiweMessage", {
+            "uri": uri,
+            "expiration": expiration,
+            "resources": resources,
+            "walletAddress": wallet_address
+        })
+
+    def generate_auth_sig(self, to_sign: str) -> Dict[str, Any]:
+        """Generates an auth signature"""
+        return self._post("/authHelpers/generateAuthSig", {"toSign": to_sign})
 
     def __del__(self):
         """Cleanup: Stop the Node.js server when the client is destroyed"""
