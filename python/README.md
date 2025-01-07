@@ -18,54 +18,126 @@ pip install -e .
 
 Before using the SDK, you'll need to set up authentication using a private key.
 
-Provide it in your code:
-
 ```python
 from lit_python_sdk import connect
 
 # Initialize the client
 client = connect()
 client.set_auth_token(os.getenv("LIT_POLYGLOT_SDK_TEST_PRIVATE_KEY"))
+
+# Initialize and connect to the network
+client.new(lit_network="datil-test", debug=True)
+client.connect()
 ```
 
 ## Features and Examples
 
 ### Executing JavaScript Code on the Lit Network
 
-You can execute JavaScript code across the Lit Network using the `execute_js` method:
+You can execute JavaScript code across the Lit Network. First, you'll need to get session signatures, then execute the code:
 
 ```python
-# Define your JavaScript code
+from datetime import datetime, timedelta, timezone
+
+# Get session signatures
+expiration = (datetime.now(timezone.utc) + timedelta(minutes=10)).strftime("%Y-%m-%dT%H:%M:%SZ")
+session_sigs_result = client.get_session_sigs(
+    chain="ethereum",
+    expiration=expiration,
+    resource_ability_requests=[{
+        "resource": {
+            "resource": "*",
+            "resourcePrefix": "lit-litaction",
+        },
+        "ability": "lit-action-execution",
+    }]
+)
+session_sigs = session_sigs_result["sessionSigs"]
+
+# Execute the code
 js_code = """
 (async () => {
-    console.log("This is a log");
-    Lit.Actions.setResponse({response: "Hello, World!"});
+    console.log("Testing executeJs endpoint");
+    Lit.Actions.setResponse({response: "Test successful"});
 })()
 """
 
-# Execute the code
-result = client.execute_js(js_code)
+result = client.execute_js(
+    code=js_code,
+    js_params={},
+    session_sigs=session_sigs
+)
 
 # The result contains:
-# - success: boolean indicating if execution was successful
 # - response: any data set using Lit.Actions.setResponse
 # - logs: console output from the execution
 ```
 
-### Creating a Wallet and Signing Messages
+### Minting PKPs and Signing Messages
 
-The SDK allows you to create a PKP (Programmable Key Pair) wallet and sign messages:
+The SDK allows you to mint a PKP (Programmable Key Pair) and sign messages:
 
 ```python
-# Create a new PKP wallet
-wallet = client.create_wallet()
+# Initialize the contracts client
+client.new_lit_contracts_client(
+    private_key=os.getenv("LIT_POLYGLOT_SDK_TEST_PRIVATE_KEY"),
+    network="datil-test",
+    debug=True
+)
+
+# Create a SIWE message for authentication
+expiration = (datetime.now(timezone.utc) + timedelta(minutes=10)).strftime("%Y-%m-%dT%H:%M:%SZ")
+siwe_result = client.create_siwe_message(
+    uri="http://localhost:3092",
+    expiration=expiration,
+    resources=[{
+        "resource": {
+            "resource": "*",
+            "resourcePrefix": "lit-litaction",
+        },
+        "ability": "lit-action-execution",
+    }],
+    wallet_address=wallet_address  # Your wallet address
+)
+
+# Generate auth signature
+auth_sig_result = client.generate_auth_sig(siwe_result["siweMessage"])
+
+# Mint a new PKP
+mint_result = client.mint_with_auth(
+    auth_method={
+        "authMethodType": 1,  # EthWallet
+        "accessToken": auth_sig_result["authSig"],
+    },
+    scopes=[1]
+)
+pkp = mint_result["pkp"]
+
+# Get session signatures for signing
+session_sigs_result = client.get_session_sigs(
+    chain="ethereum",
+    expiration=expiration,
+    resource_ability_requests=[{
+        "resource": {
+            "resource": "*",
+            "resourcePrefix": "lit-pkp",
+        },
+        "ability": "pkp-signing",
+    }]
+)
+session_sigs = session_sigs_result["sessionSigs"]
 
 # Sign a message
-message = "0xadb20420bde8cda6771249188817098fca8ccf8eef2120a31e3f64f5812026bf"
-signature = client.sign(message)
-```
+to_sign_hex = "0xadb20420bde8cda6771249188817098fca8ccf8eef2120a31e3f64f5812026bf"
+hex_str = to_sign_hex[2:] if to_sign_hex.startswith("0x") else to_sign_hex
+to_sign = [int(hex_str[i:i+2], 16) for i in range(0, len(hex_str), 2)]
 
-The wallet is a PKP-based wallet that lives across the Lit Nodes, and signing operations are performed securely within the Lit Network.
+signature = client.pkp_sign(
+    pub_key=pkp["publicKey"],
+    to_sign=to_sign,
+    session_sigs=session_sigs
+)
+```
 
 ## Development Setup
 
