@@ -2,7 +2,7 @@
 
 This monorepo contains the Lit Polyglot SDK for Python and Go. These are wrapper SDKs around the Lit JS SDK. This project is an experimental work in progress and is not yet ready for production use.
 
-## Python SDK
+## Python SDK (currently broken, in development)
 
 The [Python SDK](./python/README.md) is a wrapper around the Lit JS SDK.
 

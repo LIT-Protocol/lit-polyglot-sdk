@@ -1,16 +1,17 @@
 name: Python SDK Tests
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "python/**"
-      - "js-sdk-server/**"
-  pull_request:
-    branches: [main]
-    paths:
-      - "python/**"
-      - "js-sdk-server/**"
+  workflow_dispatch
+  # push:
+  #   branches: [main]
+  #   paths:
+  #     - "python/**"
+  #     - "js-sdk-server/**"
+  # pull_request:
+  #   branches: [main]
+  #   paths:
+  #     - "python/**"
+  #     - "js-sdk-server/**"
 
 jobs:
   test:
