@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# Check if version argument is provided
-if [ -z "$1" ]; then
-    echo "Please provide a version number (e.g. ./publish.sh 0.1.0)"
-    exit 1
-fi
+# List existing published versions
+echo "Existing published versions:"
+GOPROXY=proxy.golang.org go list -versions -m github.com/lit-protocol/lit-polyglot-sdk/go/lit_go_sdk
 
-VERSION="v$1"
+# Prompt for version number
+read -p "Enter version number (without v prefix, e.g. 0.1.0): " VERSION_INPUT
+VERSION="v$VERSION_INPUT"
 
 cd lit_go_sdk
 
