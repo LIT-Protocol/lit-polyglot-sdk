@@ -97,7 +97,7 @@ siwe_result = client.create_siwe_message(
         },
         "ability": "lit-action-execution",
     }],
-    wallet_address=wallet_address  # Your wallet address
+    wallet_address=wallet_address  # Your wallet address, derived from the private key you use for your auth token.
 )
 
 # Generate auth signature
