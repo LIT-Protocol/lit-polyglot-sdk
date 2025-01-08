@@ -123,6 +123,13 @@ session_sigs_result = client.get_session_sigs(
             "resourcePrefix": "lit-pkp",
         },
         "ability": "pkp-signing",
+    },
+    {
+        "resource": {
+            "resource": "*",
+            "resourcePrefix": "lit-litaction",
+        },
+        "ability": "lit-action-execution",
     }]
 )
 session_sigs = session_sigs_result["sessionSigs"]
