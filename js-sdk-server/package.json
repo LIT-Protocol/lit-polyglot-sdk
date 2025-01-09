@@ -1,12 +1,13 @@
 {
   "name": "js-sdk-server",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/server.js",
   "scripts": {
-    "start": "node server.js",
-    "test": "node test.js",
-    "build": "concurrently \"esbuild server.js --bundle --platform=node --outfile=../python/lit_python_sdk/bundled_server.js\" \"esbuild server.js --bundle --platform=node --outfile=../go/lit_go_sdk/bundled_server.js\"",
-    "dev": "concurrently \"esbuild server.js --bundle --platform=node --outfile=../python/lit_python_sdk/bundled_server.js --watch\" \"esbuild server.js --bundle --platform=node --outfile=../go/lit_go_sdk/bundled_server.js --watch\""
+    "start": "tsx src/server.ts",
+    "build": "concurrently \"esbuild src/server.ts --bundle --platform=node --outfile=../python/lit_python_sdk/bundled_server.js\" \"esbuild src/server.ts --bundle --platform=node --outfile=../go/lit_go_sdk/bundled_server.js\"",
+    "dev": "concurrently \"esbuild src/server.ts --bundle --platform=node --outfile=../python/lit_python_sdk/bundled_server.js --watch\" \"esbuild src/server.ts --bundle --platform=node --outfile=../go/lit_go_sdk/bundled_server.js --watch\"",
+    "test": "tsx src/test.ts",
+    "type-check": "tsc --noEmit"
   },
   "keywords": [],
   "author": "",
@@ -25,6 +26,12 @@
     "node-fetch": "^2.6.9"
   },
   "devDependencies": {
-    "esbuild": "^0.20.1"
+    "@types/body-parser": "^1.19.5",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.11.16",
+    "@types/node-fetch": "^2.6.11",
+    "esbuild": "^0.20.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.3.3"
   }
 }
