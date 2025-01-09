@@ -15,6 +15,7 @@ The [Go SDK](./go/lit_go_sdk/README.md) is a wrapper around the Lit JS SDK.
 - Lit Action Execution. Run JS code in a Lit Action, which will run across the Lit Nodes in a TEE.
 - Lit Wallet / PKP Creation. Create a Lit Wallet (Aka a PKP), which is a threshold key that lives across the Lit Nodes.
 - Lit Signing. Sign a message with a Lit Wallet PKP.
+- Lit String Encryption and Decryption. Encrypt and decrypt strings with access control conditions.
 
 Don't see a feature you need? [Join the community](https://developer.litprotocol.com/support/intro) and let us know!
 
