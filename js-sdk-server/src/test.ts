@@ -393,6 +393,42 @@ async function testLitNodeClientDisconnect(): Promise<void> {
   }
 }
 
+async function testLitNodeClientEncryptString(): Promise<void> {
+  const wallet = new ethers.Wallet(
+    process.env.LIT_POLYGLOT_SDK_TEST_PRIVATE_KEY as string
+  );
+  const response = await fetch(
+    'http://localhost:3092/litNodeClient/encryptString',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        dataToEncrypt: 'Hello, World!',
+        accessControlConditions: [
+          {
+            contractAddress: '',
+            standardContractType: '',
+            chain: 'ethereum',
+            method: '',
+            parameters: [':userAddress'],
+            returnValueTest: {
+              comparator: '=',
+              value: wallet.address,
+            },
+          },
+        ],
+      }),
+    }
+  );
+  const data = (await response.json()) as ApiResponse;
+  console.log('encryption result data', data);
+  if (!data.ciphertext || !data.dataToEncryptHash) {
+    throw new Error('Failed to encrypt string');
+  }
+}
+
 // Run the test with readiness check
 async function runTest(): Promise<void> {
   const serverHandle = await startServer();
@@ -410,6 +446,7 @@ async function runTest(): Promise<void> {
     await testLitNodeClientExecuteJs();
     const pkp = await testLitContractsClientMintWithAuth();
     await testLitNodeClientPkpSign(pkp);
+    await testLitNodeClientEncryptString();
 
     // Cleanup
     await testLitNodeClientDisconnect();

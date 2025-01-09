@@ -23,6 +23,7 @@
     "ethers": "^5.7.2",
     "express": "^4.18.2",
     "localstorage-memory": "^1.0.3",
+    "@lit-protocol/encryption": "7.0.1-alpha-0",
     "node-fetch": "^2.6.9"
   },
   "devDependencies": {

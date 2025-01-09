@@ -22,6 +22,7 @@ import { LitContracts } from '@lit-protocol/contracts-sdk';
 import { getSessionSigs, deserializeResourceAbilityRequests } from './utils';
 import LocalStorage from 'localstorage-memory';
 import { ResourceAbilityRequest } from './types';
+import { encryptString } from '@lit-protocol/encryption';
 
 // Declare localStorage if it doesn't exist
 declare global {
@@ -93,6 +94,14 @@ interface CreateSiweMessageRequest {
 
 interface GenerateAuthSigRequest {
   toSign: string;
+}
+
+interface EncryptStringRequest {
+  accessControlConditions?: any[];
+  dataToEncrypt: string;
+  evmContractConditions?: any[];
+  solRpcConditions?: any[];
+  unifiedAccessControlConditions?: any[];
 }
 
 // Utility function to wrap async route handlers
@@ -430,6 +439,42 @@ app.post(
       });
       await app.locals.litContractClient.connect();
       res.json({ success: true });
+    }
+  )
+);
+
+// Encrypt a string using Lit Protocol
+app.post(
+  '/litNodeClient/encryptString',
+  asyncHandler(
+    async (req: Request<{}, {}, EncryptStringRequest>, res: Response) => {
+      if (!app.locals.litNodeClient) {
+        return res.status(400).json({
+          success: false,
+          error: 'LitNodeClient not initialized',
+        });
+      }
+
+      const {
+        accessControlConditions,
+        dataToEncrypt,
+        evmContractConditions,
+        solRpcConditions,
+        unifiedAccessControlConditions,
+      } = req.body;
+
+      const response = await encryptString(
+        {
+          accessControlConditions,
+          dataToEncrypt,
+          evmContractConditions,
+          solRpcConditions,
+          unifiedAccessControlConditions,
+        },
+        app.locals.litNodeClient
+      );
+
+      res.json(response);
     }
   )
 );
