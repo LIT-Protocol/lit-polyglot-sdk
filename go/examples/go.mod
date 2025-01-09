@@ -18,4 +18,4 @@ require (
 )
 
 // turn this on to use the local lit_go_sdk when doing development
-replace github.com/lit-protocol/lit-polyglot-sdk/go/lit_go_sdk => ../lit_go_sdk
+// replace github.com/lit-protocol/lit-polyglot-sdk/go/lit_go_sdk => ../lit_go_sdk
