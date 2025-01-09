@@ -291,3 +291,123 @@ func TestIntegration_GetLogs(t *testing.T) {
 		t.Error("Expected logs to be non-empty")
 	}
 }
+
+func TestIntegration_EncryptAndDecryptString(t *testing.T) {
+	// Derive wallet address from private key
+	privateKeyHex := os.Getenv("LIT_POLYGLOT_SDK_TEST_PRIVATE_KEY")
+	if privateKeyHex == "" {
+		t.Fatal("LIT_POLYGLOT_SDK_TEST_PRIVATE_KEY environment variable not set")
+	}
+
+	privateKeyBytes, err := hex.DecodeString(strings.TrimPrefix(privateKeyHex, "0x"))
+	if err != nil {
+		t.Fatalf("Failed to decode private key: %v", err)
+	}
+
+	privateKey, err := crypto.ToECDSA(privateKeyBytes)
+	if err != nil {
+		t.Fatalf("Failed to convert private key: %v", err)
+	}
+
+	publicKey := privateKey.Public()
+	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
+	if !ok {
+		t.Fatal("Failed to get public key")
+	}
+
+	address := crypto.PubkeyToAddress(*publicKeyECDSA).Hex()
+
+	// Get session signatures
+	sessionSigsResult, err := integrationClient.GetSessionSigs(SessionSigsParams{
+		Chain:      "ethereum",
+		Expiration: time.Now().Add(10 * time.Minute).Format(time.RFC3339),
+		ResourceAbilityRequests: []interface{}{
+			map[string]interface{}{
+				"resource": map[string]interface{}{
+					"resource":       "*",
+					"resourcePrefix": "lit-litaction",
+				},
+				"ability": "lit-action-execution",
+			},
+			map[string]interface{}{
+				"resource": map[string]interface{}{
+					"resource":       "*",
+					"resourcePrefix": "lit-pkp",
+				},
+				"ability": "pkp-signing",
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("GetSessionSigs() error = %v", err)
+	}
+
+	sessionSigs := sessionSigsResult["sessionSigs"].(map[string]interface{})
+
+	// Test string to encrypt
+	testString := "Hello, World!"
+
+	// Test encryption
+	encryptResult, err := integrationClient.EncryptString(EncryptStringParams{
+		DataToEncrypt: testString,
+		AccessControlConditions: []interface{}{
+			map[string]interface{}{
+				"contractAddress":      "",
+				"standardContractType": "",
+				"chain":                "ethereum",
+				"method":               "",
+				"parameters":           []string{":userAddress"},
+				"returnValueTest": map[string]interface{}{
+					"comparator": "=",
+					"value":      address,
+				},
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("EncryptString() error = %v", err)
+	}
+
+	ciphertext, ok := encryptResult["ciphertext"].(string)
+	if !ok {
+		t.Fatal("Expected ciphertext in response")
+	}
+
+	dataToEncryptHash, ok := encryptResult["dataToEncryptHash"].(string)
+	if !ok {
+		t.Fatal("Expected dataToEncryptHash in response")
+	}
+
+	// Test decryption
+	decryptResult, err := integrationClient.DecryptString(DecryptStringParams{
+		Chain:             "ethereum",
+		Ciphertext:        ciphertext,
+		DataToEncryptHash: dataToEncryptHash,
+		AccessControlConditions: []interface{}{
+			map[string]interface{}{
+				"contractAddress":      "",
+				"standardContractType": "",
+				"chain":                "ethereum",
+				"method":               "",
+				"parameters":           []string{":userAddress"},
+				"returnValueTest": map[string]interface{}{
+					"comparator": "=",
+					"value":      address,
+				},
+			},
+		},
+		SessionSigs: sessionSigs,
+	})
+	if err != nil {
+		t.Fatalf("DecryptString() error = %v", err)
+	}
+
+	decryptedString, ok := decryptResult["decryptedString"].(string)
+	if !ok {
+		t.Fatal("Expected decryptedString in response")
+	}
+
+	if decryptedString != testString {
+		t.Errorf("Decrypted string does not match original. got = %v, want = %v", decryptedString, testString)
+	}
+}

@@ -125,6 +125,72 @@ mintResult, err := client.MintWithAuth(lit_go_sdk.MintWithAuthParams{
 })
 ```
 
+## String Encryption and Decryption
+
+The SDK provides functionality to encrypt and decrypt strings with access control conditions. Here's how to use it:
+
+```go
+// First, get session signatures
+sessionSigsResult, err := client.GetSessionSigs(lit_go_sdk.SessionSigsParams{
+    Chain:      "ethereum",
+    Expiration: time.Now().Add(10 * time.Minute).Format(time.RFC3339),
+    ResourceAbilityRequests: []interface{}{
+        map[string]interface{}{
+            "resource": map[string]interface{}{
+                "resource":       "*",
+                "resourcePrefix": "lit-litaction",
+            },
+            "ability": "lit-action-execution",
+        },
+    },
+})
+sessionSigs := sessionSigsResult["sessionSigs"].(map[string]interface{})
+
+// Encrypt a string
+testString := "Hello, World!"
+encryptResult, err := client.EncryptString(lit_go_sdk.EncryptStringParams{
+    DataToEncrypt: testString,
+    AccessControlConditions: []interface{}{
+        map[string]interface{}{
+            "contractAddress": "",
+            "standardContractType": "",
+            "chain": "ethereum",
+            "method": "",
+            "parameters": []string{":userAddress"},
+            "returnValueTest": map[string]interface{}{
+                "comparator": "=",
+                "value": "your-eth-wallet-address",
+            },
+        },
+    },
+})
+
+// Decrypt the string
+decryptResult, err := client.DecryptString(lit_go_sdk.DecryptStringParams{
+    Chain:             "ethereum",
+    Ciphertext:        encryptResult["ciphertext"].(string),
+    DataToEncryptHash: encryptResult["dataToEncryptHash"].(string),
+    AccessControlConditions: []interface{}{
+        map[string]interface{}{
+            "contractAddress": "",
+            "standardContractType": "",
+            "chain": "ethereum",
+            "method": "",
+            "parameters": []string{":userAddress"},
+            "returnValueTest": map[string]interface{}{
+                "comparator": "=",
+                "value": "your-eth-wallet-address",
+            },
+        },
+    },
+    SessionSigs: sessionSigs,
+})
+
+fmt.Printf("Decrypted string: %s\n", decryptResult["decryptedString"])
+```
+
+The encryption is tied to access control conditions, which means only users who meet those conditions (like owning a specific wallet address) can decrypt the data.
+
 ## API Reference
 
 ### NewLitNodeClient() (\*LitNodeClient, error)
@@ -162,6 +228,14 @@ Generates an authentication signature.
 ### MintWithAuth(params MintWithAuthParams) (map[string]interface{}, error)
 
 Mints a new PKP with authentication.
+
+### EncryptString(params EncryptStringParams) (map[string]interface{}, error)
+
+Encrypts a string with access control conditions.
+
+### DecryptString(params DecryptStringParams) (map[string]interface{}, error)
+
+Decrypts a string using session signatures and access control conditions.
 
 ### Close() error
 
