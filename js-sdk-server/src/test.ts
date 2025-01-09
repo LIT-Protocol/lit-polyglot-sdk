@@ -393,6 +393,151 @@ async function testLitNodeClientDisconnect(): Promise<void> {
   }
 }
 
+async function testLitNodeClientEncryptString(): Promise<void> {
+  const wallet = new ethers.Wallet(
+    process.env.LIT_POLYGLOT_SDK_TEST_PRIVATE_KEY as string
+  );
+  const response = await fetch(
+    'http://localhost:3092/litNodeClient/encryptString',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        dataToEncrypt: 'Hello, World!',
+        accessControlConditions: [
+          {
+            contractAddress: '',
+            standardContractType: '',
+            chain: 'ethereum',
+            method: '',
+            parameters: [':userAddress'],
+            returnValueTest: {
+              comparator: '=',
+              value: wallet.address,
+            },
+          },
+        ],
+      }),
+    }
+  );
+  const data = (await response.json()) as ApiResponse;
+  console.log('encryption result data', data);
+  if (!data.ciphertext || !data.dataToEncryptHash) {
+    throw new Error('Failed to encrypt string');
+  }
+}
+
+async function testLitNodeClientEncryptAndDecrypt(): Promise<void> {
+  const wallet = new ethers.Wallet(
+    process.env.LIT_POLYGLOT_SDK_TEST_PRIVATE_KEY as string
+  );
+
+  // First get session signatures
+  const sessionSigsResponse = await fetch(
+    'http://localhost:3092/litNodeClient/getSessionSigs',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        chain: 'ethereum',
+        expiration: new Date(Date.now() + 1000 * 60 * 10).toISOString(), // 10 minutes
+        resourceAbilityRequests: [
+          {
+            resource: new LitActionResource('*'),
+            ability: LIT_ABILITY.LitActionExecution,
+          },
+          {
+            resource: new LitPKPResource('*'),
+            ability: LIT_ABILITY.PKPSigning,
+          },
+        ],
+      }),
+    }
+  );
+  const { success: sessionSigsSuccess, sessionSigs } =
+    await sessionSigsResponse.json();
+  if (!sessionSigsSuccess || !sessionSigs) {
+    throw new Error('Failed to get session signatures');
+  }
+
+  // Encrypt the string
+  const testString = 'Hello, World!';
+  const encryptResponse = await fetch(
+    'http://localhost:3092/litNodeClient/encryptString',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        dataToEncrypt: testString,
+        accessControlConditions: [
+          {
+            contractAddress: '',
+            standardContractType: '',
+            chain: 'ethereum',
+            method: '',
+            parameters: [':userAddress'],
+            returnValueTest: {
+              comparator: '=',
+              value: wallet.address,
+            },
+          },
+        ],
+      }),
+    }
+  );
+  const encryptData = await encryptResponse.json();
+  console.log('encryption result data', encryptData);
+  if (!encryptData.ciphertext || !encryptData.dataToEncryptHash) {
+    throw new Error('Failed to encrypt string');
+  }
+
+  // Now decrypt the string
+  const decryptResponse = await fetch(
+    'http://localhost:3092/litNodeClient/decryptString',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        chain: 'ethereum',
+        ciphertext: encryptData.ciphertext,
+        dataToEncryptHash: encryptData.dataToEncryptHash,
+        accessControlConditions: [
+          {
+            contractAddress: '',
+            standardContractType: '',
+            chain: 'ethereum',
+            method: '',
+            parameters: [':userAddress'],
+            returnValueTest: {
+              comparator: '=',
+              value: wallet.address,
+            },
+          },
+        ],
+        sessionSigs,
+      }),
+    }
+  );
+  const decryptData = await decryptResponse.json();
+  console.log('decryption result data', decryptData);
+  if (!decryptData.decryptedString) {
+    throw new Error('Failed to decrypt string');
+  }
+
+  // Verify the decrypted string matches the original
+  if (decryptData.decryptedString !== testString) {
+    throw new Error('Decrypted string does not match original');
+  }
+}
+
 // Run the test with readiness check
 async function runTest(): Promise<void> {
   const serverHandle = await startServer();
@@ -410,6 +555,7 @@ async function runTest(): Promise<void> {
     await testLitNodeClientExecuteJs();
     const pkp = await testLitContractsClientMintWithAuth();
     await testLitNodeClientPkpSign(pkp);
+    await testLitNodeClientEncryptAndDecrypt();
 
     // Cleanup
     await testLitNodeClientDisconnect();

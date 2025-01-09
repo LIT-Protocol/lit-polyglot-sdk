@@ -21,7 +21,9 @@ import {
 import { LitContracts } from '@lit-protocol/contracts-sdk';
 import { getSessionSigs, deserializeResourceAbilityRequests } from './utils';
 import LocalStorage from 'localstorage-memory';
+import { Crypto } from '@peculiar/webcrypto';
 import { ResourceAbilityRequest } from './types';
+import { encryptString, decryptToString } from '@lit-protocol/encryption';
 
 // Declare localStorage if it doesn't exist
 declare global {
@@ -29,6 +31,11 @@ declare global {
 }
 if (typeof localStorage === 'undefined' || localStorage === null) {
   global.localStorage = LocalStorage;
+}
+
+if (typeof crypto === 'undefined' || crypto === null) {
+  // @ts-ignore
+  global.crypto = new Crypto();
 }
 
 // Types for request bodies
@@ -93,6 +100,26 @@ interface CreateSiweMessageRequest {
 
 interface GenerateAuthSigRequest {
   toSign: string;
+}
+
+interface EncryptStringRequest {
+  accessControlConditions?: any[];
+  dataToEncrypt: string;
+  evmContractConditions?: any[];
+  solRpcConditions?: any[];
+  unifiedAccessControlConditions?: any[];
+}
+
+interface DecryptRequest {
+  accessControlConditions?: any[];
+  authSig?: any;
+  chain: string;
+  ciphertext: string;
+  dataToEncryptHash: string;
+  evmContractConditions?: any[];
+  sessionSigs?: any;
+  solRpcConditions?: any[];
+  unifiedAccessControlConditions?: any[];
 }
 
 // Utility function to wrap async route handlers
@@ -432,6 +459,84 @@ app.post(
       res.json({ success: true });
     }
   )
+);
+
+// Encrypt a string using Lit Protocol
+app.post(
+  '/litNodeClient/encryptString',
+  asyncHandler(
+    async (req: Request<{}, {}, EncryptStringRequest>, res: Response) => {
+      if (!app.locals.litNodeClient) {
+        return res.status(400).json({
+          success: false,
+          error: 'LitNodeClient not initialized',
+        });
+      }
+
+      const {
+        accessControlConditions,
+        dataToEncrypt,
+        evmContractConditions,
+        solRpcConditions,
+        unifiedAccessControlConditions,
+      } = req.body;
+
+      const response = await encryptString(
+        {
+          accessControlConditions,
+          dataToEncrypt,
+          evmContractConditions,
+          solRpcConditions,
+          unifiedAccessControlConditions,
+        },
+        app.locals.litNodeClient
+      );
+
+      res.json(response);
+    }
+  )
+);
+
+// Decrypt a string using Lit Protocol
+app.post(
+  '/litNodeClient/decryptString',
+  asyncHandler(async (req: Request<{}, {}, DecryptRequest>, res: Response) => {
+    if (!app.locals.litNodeClient) {
+      return res.status(400).json({
+        success: false,
+        error: 'LitNodeClient not initialized',
+      });
+    }
+
+    const {
+      accessControlConditions,
+      authSig,
+      chain,
+      ciphertext,
+      dataToEncryptHash,
+      evmContractConditions,
+      sessionSigs,
+      solRpcConditions,
+      unifiedAccessControlConditions,
+    } = req.body;
+
+    const decryptedString = await decryptToString(
+      {
+        accessControlConditions,
+        authSig,
+        chain,
+        ciphertext,
+        dataToEncryptHash,
+        evmContractConditions,
+        sessionSigs,
+        solRpcConditions,
+        unifiedAccessControlConditions,
+      },
+      app.locals.litNodeClient
+    );
+
+    res.json({ decryptedString });
+  })
 );
 
 // Health check endpoint
