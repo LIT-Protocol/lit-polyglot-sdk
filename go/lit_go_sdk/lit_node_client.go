@@ -238,3 +238,34 @@ func (c *LitNodeClient) CreateSiweMessage(params CreateSiweMessageParams) (map[s
 func (c *LitNodeClient) GenerateAuthSig(toSign string) (map[string]interface{}, error) {
 	return c.post("/authHelpers/generateAuthSig", map[string]string{"toSign": toSign})
 }
+
+// EncryptStringParams represents the parameters for encrypting a string
+type EncryptStringParams struct {
+	DataToEncrypt                  string        `json:"dataToEncrypt"`
+	AccessControlConditions        []interface{} `json:"accessControlConditions,omitempty"`
+	EvmContractConditions          []interface{} `json:"evmContractConditions,omitempty"`
+	SolRpcConditions               []interface{} `json:"solRpcConditions,omitempty"`
+	UnifiedAccessControlConditions []interface{} `json:"unifiedAccessControlConditions,omitempty"`
+}
+
+// DecryptStringParams represents the parameters for decrypting a string
+type DecryptStringParams struct {
+	Ciphertext                     string                 `json:"ciphertext"`
+	DataToEncryptHash              string                 `json:"dataToEncryptHash"`
+	AccessControlConditions        []interface{}          `json:"accessControlConditions,omitempty"`
+	EvmContractConditions          []interface{}          `json:"evmContractConditions,omitempty"`
+	SolRpcConditions               []interface{}          `json:"solRpcConditions,omitempty"`
+	UnifiedAccessControlConditions []interface{}          `json:"unifiedAccessControlConditions,omitempty"`
+	SessionSigs                    map[string]interface{} `json:"sessionSigs"`
+	Chain                          string                 `json:"chain"`
+}
+
+// EncryptString encrypts a string using Lit Protocol
+func (c *LitNodeClient) EncryptString(params EncryptStringParams) (map[string]interface{}, error) {
+	return c.post("/litNodeClient/encryptString", params)
+}
+
+// DecryptString decrypts a string using Lit Protocol
+func (c *LitNodeClient) DecryptString(params DecryptStringParams) (map[string]interface{}, error) {
+	return c.post("/litNodeClient/decryptString", params)
+}
