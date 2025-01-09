@@ -22,7 +22,7 @@ import { LitContracts } from '@lit-protocol/contracts-sdk';
 import { getSessionSigs, deserializeResourceAbilityRequests } from './utils';
 import LocalStorage from 'localstorage-memory';
 import { ResourceAbilityRequest } from './types';
-import { encryptString } from '@lit-protocol/encryption';
+import { encryptString, decryptToString } from '@lit-protocol/encryption';
 
 // Declare localStorage if it doesn't exist
 declare global {
@@ -100,6 +100,18 @@ interface EncryptStringRequest {
   accessControlConditions?: any[];
   dataToEncrypt: string;
   evmContractConditions?: any[];
+  solRpcConditions?: any[];
+  unifiedAccessControlConditions?: any[];
+}
+
+interface DecryptRequest {
+  accessControlConditions?: any[];
+  authSig?: any;
+  chain: string;
+  ciphertext: string;
+  dataToEncryptHash: string;
+  evmContractConditions?: any[];
+  sessionSigs?: any;
   solRpcConditions?: any[];
   unifiedAccessControlConditions?: any[];
 }
@@ -477,6 +489,48 @@ app.post(
       res.json(response);
     }
   )
+);
+
+// Decrypt a string using Lit Protocol
+app.post(
+  '/litNodeClient/decryptString',
+  asyncHandler(async (req: Request<{}, {}, DecryptRequest>, res: Response) => {
+    if (!app.locals.litNodeClient) {
+      return res.status(400).json({
+        success: false,
+        error: 'LitNodeClient not initialized',
+      });
+    }
+
+    const {
+      accessControlConditions,
+      authSig,
+      chain,
+      ciphertext,
+      dataToEncryptHash,
+      evmContractConditions,
+      sessionSigs,
+      solRpcConditions,
+      unifiedAccessControlConditions,
+    } = req.body;
+
+    const decryptedString = await decryptToString(
+      {
+        accessControlConditions,
+        authSig,
+        chain,
+        ciphertext,
+        dataToEncryptHash,
+        evmContractConditions,
+        sessionSigs,
+        solRpcConditions,
+        unifiedAccessControlConditions,
+      },
+      app.locals.litNodeClient
+    );
+
+    res.json({ decryptedString });
+  })
 );
 
 // Health check endpoint
