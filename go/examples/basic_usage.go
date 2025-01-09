@@ -176,4 +176,58 @@ func main() {
 	}
 
 	fmt.Printf("Signature: %v\n", signResult["signature"])
+
+	// Example of string encryption and decryption
+	fmt.Println("\nTesting string encryption and decryption:")
+	testString := "Hello, World!"
+	fmt.Printf("Original string: %s\n", testString)
+
+	// Encrypt the string
+	encryptResult, err := client.EncryptString(lit.EncryptStringParams{
+		DataToEncrypt: testString,
+		AccessControlConditions: []interface{}{
+			map[string]interface{}{
+				"contractAddress":      "",
+				"standardContractType": "",
+				"chain":                "ethereum",
+				"method":               "",
+				"parameters":           []string{":userAddress"},
+				"returnValueTest": map[string]interface{}{
+					"comparator": "=",
+					"value":      walletAddress,
+				},
+			},
+		},
+	})
+	if err != nil {
+		log.Fatalf("Failed to encrypt string: %v", err)
+	}
+
+	fmt.Printf("Encrypted data: %v\n", encryptResult)
+
+	// Decrypt the string
+	decryptResult, err := client.DecryptString(lit.DecryptStringParams{
+		Chain:             "ethereum",
+		Ciphertext:        encryptResult["ciphertext"].(string),
+		DataToEncryptHash: encryptResult["dataToEncryptHash"].(string),
+		AccessControlConditions: []interface{}{
+			map[string]interface{}{
+				"contractAddress":      "",
+				"standardContractType": "",
+				"chain":                "ethereum",
+				"method":               "",
+				"parameters":           []string{":userAddress"},
+				"returnValueTest": map[string]interface{}{
+					"comparator": "=",
+					"value":      walletAddress,
+				},
+			},
+		},
+		SessionSigs: sessionSigs,
+	})
+	if err != nil {
+		log.Fatalf("Failed to decrypt string: %v", err)
+	}
+
+	fmt.Printf("Decrypted string: %s\n", decryptResult["decryptedString"])
 }
