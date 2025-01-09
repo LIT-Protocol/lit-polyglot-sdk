@@ -179,6 +179,88 @@ class LitClient:
         """Generates an auth signature"""
         return self._post("/authHelpers/generateAuthSig", {"toSign": to_sign})
 
+    def encrypt_string(
+        self,
+        data_to_encrypt: str,
+        access_control_conditions: Optional[List[Dict[str, Any]]] = None,
+        evm_contract_conditions: Optional[List[Dict[str, Any]]] = None,
+        sol_rpc_conditions: Optional[List[Dict[str, Any]]] = None,
+        unified_access_control_conditions: Optional[List[Dict[str, Any]]] = None,
+    ) -> Dict[str, Any]:
+        """Encrypts a string using Lit Protocol
+        
+        Args:
+            data_to_encrypt: The string to encrypt
+            access_control_conditions: Optional list of access control conditions
+            evm_contract_conditions: Optional list of EVM contract conditions
+            sol_rpc_conditions: Optional list of Solana RPC conditions
+            unified_access_control_conditions: Optional list of unified access control conditions
+            
+        Returns:
+            Dict containing the encrypted data (ciphertext) and dataToEncryptHash
+        """
+        payload = {
+            "dataToEncrypt": data_to_encrypt,
+        }
+        if access_control_conditions is not None:
+            payload["accessControlConditions"] = access_control_conditions
+        if evm_contract_conditions is not None:
+            payload["evmContractConditions"] = evm_contract_conditions
+        if sol_rpc_conditions is not None:
+            payload["solRpcConditions"] = sol_rpc_conditions
+        if unified_access_control_conditions is not None:
+            payload["unifiedAccessControlConditions"] = unified_access_control_conditions
+
+        return self._post("/litNodeClient/encryptString", payload)
+
+    def decrypt_string(
+        self,
+        ciphertext: str,
+        data_to_encrypt_hash: str,
+        chain: str,
+        access_control_conditions: Optional[List[Dict[str, Any]]] = None,
+        evm_contract_conditions: Optional[List[Dict[str, Any]]] = None,
+        sol_rpc_conditions: Optional[List[Dict[str, Any]]] = None,
+        unified_access_control_conditions: Optional[List[Dict[str, Any]]] = None,
+        auth_sig: Optional[Dict[str, Any]] = None,
+        session_sigs: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """Decrypts a string using Lit Protocol
+        
+        Args:
+            ciphertext: The encrypted string to decrypt
+            data_to_encrypt_hash: The hash of the original data
+            chain: The blockchain network (e.g. 'ethereum')
+            access_control_conditions: Optional list of access control conditions
+            evm_contract_conditions: Optional list of EVM contract conditions
+            sol_rpc_conditions: Optional list of Solana RPC conditions
+            unified_access_control_conditions: Optional list of unified access control conditions
+            auth_sig: Optional authentication signature
+            session_sigs: Optional session signatures
+            
+        Returns:
+            Dict containing the decrypted string
+        """
+        payload = {
+            "ciphertext": ciphertext,
+            "dataToEncryptHash": data_to_encrypt_hash,
+            "chain": chain,
+        }
+        if access_control_conditions is not None:
+            payload["accessControlConditions"] = access_control_conditions
+        if evm_contract_conditions is not None:
+            payload["evmContractConditions"] = evm_contract_conditions
+        if sol_rpc_conditions is not None:
+            payload["solRpcConditions"] = sol_rpc_conditions
+        if unified_access_control_conditions is not None:
+            payload["unifiedAccessControlConditions"] = unified_access_control_conditions
+        if auth_sig is not None:
+            payload["authSig"] = auth_sig
+        if session_sigs is not None:
+            payload["sessionSigs"] = session_sigs
+
+        return self._post("/litNodeClient/decryptString", payload)
+
     def __del__(self):
         """Cleanup: Stop the Node.js server when the client is destroyed"""
         if hasattr(self, 'server') and self.server is not None:
