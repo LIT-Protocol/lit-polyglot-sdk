@@ -140,5 +140,40 @@ def main():
     )
     print("✓ Signature:", signature)
 
+    print("\n8. Encrypting a string with access control conditions...")
+    # Define access control conditions that only allow the wallet address to decrypt
+    access_control_conditions = [{
+        "contractAddress": "",
+        "standardContractType": "",
+        "chain": "ethereum",
+        "method": "",
+        "parameters": [":userAddress"],
+        "returnValueTest": {
+            "comparator": "=",
+            "value": wallet_address
+        }
+    }]
+
+    # Encrypt a test string
+    test_string = "Hello from Lit Protocol!"
+    encrypt_result = client.encrypt_string(
+        data_to_encrypt=test_string,
+        access_control_conditions=access_control_conditions
+    )
+    print("✓ String encrypted successfully")
+    print("  Ciphertext:", encrypt_result["ciphertext"][:50] + "...")  # Show first 50 chars
+
+    print("\n9. Decrypting the string...")
+    # Decrypt the string using the same access control conditions
+    decrypt_result = client.decrypt_string(
+        ciphertext=encrypt_result["ciphertext"],
+        data_to_encrypt_hash=encrypt_result["dataToEncryptHash"],
+        chain="ethereum",
+        access_control_conditions=access_control_conditions,
+        session_sigs=signing_session_sigs  # Reuse the session sigs we got earlier
+    )
+    print("✓ Decrypted string:", decrypt_result["decryptedString"])
+    print("✓ Decryption successful - string matches original:", decrypt_result["decryptedString"] == test_string)
+
 if __name__ == "__main__":
     main() 
