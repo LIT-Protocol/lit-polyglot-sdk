@@ -21,6 +21,7 @@ import {
 import { LitContracts } from '@lit-protocol/contracts-sdk';
 import { getSessionSigs, deserializeResourceAbilityRequests } from './utils';
 import LocalStorage from 'localstorage-memory';
+import { Crypto } from '@peculiar/webcrypto';
 import { ResourceAbilityRequest } from './types';
 import { encryptString, decryptToString } from '@lit-protocol/encryption';
 
@@ -30,6 +31,11 @@ declare global {
 }
 if (typeof localStorage === 'undefined' || localStorage === null) {
   global.localStorage = LocalStorage;
+}
+
+if (typeof crypto === 'undefined' || crypto === null) {
+  // @ts-ignore
+  global.crypto = new Crypto();
 }
 
 // Types for request bodies
