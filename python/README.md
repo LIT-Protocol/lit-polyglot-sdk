@@ -146,6 +146,77 @@ signature = client.pkp_sign(
 )
 ```
 
+### String Encryption and Decryption
+
+The SDK provides methods to encrypt and decrypt strings using the Lit Protocol. This allows you to create access-controlled encrypted content:
+
+```python
+from datetime import datetime, timedelta, timezone
+
+# Get session signatures for decryption
+expiration = (datetime.now(timezone.utc) + timedelta(minutes=10)).strftime("%Y-%m-%dT%H:%M:%SZ")
+session_sigs_result = client.get_session_sigs(
+    chain="ethereum",
+    expiration=expiration,
+    resource_ability_requests=[{
+        "resource": {
+            "resource": "*",
+            "resourcePrefix": "lit-litaction",
+        },
+        "ability": "lit-action-execution",
+    }, {
+        "resource": {
+            "resource": "*",
+            "resourcePrefix": "lit-pkp",
+        },
+        "ability": "pkp-signing",
+    }]
+)
+session_sigs = session_sigs_result["sessionSigs"]
+
+# Define access control conditions
+# This example allows only a specific wallet address to decrypt the content
+access_control_conditions = [{
+    "contractAddress": "",
+    "standardContractType": "",
+    "chain": "ethereum",
+    "method": "",
+    "parameters": [":userAddress"],
+    "returnValueTest": {
+        "comparator": "=",
+        "value": "0x..." # Replace with the authorized wallet address
+    }
+}]
+
+# Encrypt a string
+encrypt_result = client.encrypt_string(
+    data_to_encrypt="Hello, World!",
+    access_control_conditions=access_control_conditions
+)
+
+# The encrypt_result contains:
+# - ciphertext: the encrypted string
+# - dataToEncryptHash: hash of the original data
+
+# Decrypt the string
+decrypt_result = client.decrypt_string(
+    ciphertext=encrypt_result["ciphertext"],
+    data_to_encrypt_hash=encrypt_result["dataToEncryptHash"],
+    chain="ethereum",
+    access_control_conditions=access_control_conditions,
+    session_sigs=session_sigs
+)
+
+# decrypt_result["decryptedString"] contains the original message
+print(decrypt_result["decryptedString"])  # Output: "Hello, World!"
+```
+
+You can also use other types of access control conditions:
+
+- EVM contract conditions (`evm_contract_conditions`)
+- Solana RPC conditions (`sol_rpc_conditions`)
+- Unified access control conditions (`unified_access_control_conditions`)
+
 ## Development Setup
 
 For development and testing:
