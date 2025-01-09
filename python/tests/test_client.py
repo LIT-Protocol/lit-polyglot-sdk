@@ -149,3 +149,61 @@ def test_contracts_and_auth():
         session_sigs=session_sigs
     )
     assert "signature" in sign_result, "Expected signature in response"
+
+def test_encrypt_decrypt_string():
+    # First get session sigs
+    expiration = (datetime.now(timezone.utc) + timedelta(minutes=10)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    session_sigs_result = client.get_session_sigs(
+        chain="ethereum",
+        expiration=expiration,
+        resource_ability_requests=[{
+            "resource": {
+                "resource": "*",
+                "resourcePrefix": "lit-litaction",
+            },
+            "ability": "lit-action-execution",
+        }, {
+            "resource": {
+                "resource": "*",
+                "resourcePrefix": "lit-pkp",
+            },
+            "ability": "pkp-signing",
+        }]
+    )
+    assert "sessionSigs" in session_sigs_result, "Expected sessionSigs in response"
+    session_sigs = session_sigs_result["sessionSigs"]
+
+    # Test string to encrypt
+    test_string = "Hello, World!"
+
+    # Set up access control conditions
+    access_control_conditions = [{
+        "contractAddress": "",
+        "standardContractType": "",
+        "chain": "ethereum",
+        "method": "",
+        "parameters": [":userAddress"],
+        "returnValueTest": {
+            "comparator": "=",
+            "value": wallet_address
+        }
+    }]
+
+    # Test encryption
+    encrypt_result = client.encrypt_string(
+        data_to_encrypt=test_string,
+        access_control_conditions=access_control_conditions
+    )
+    assert "ciphertext" in encrypt_result, "Expected ciphertext in response"
+    assert "dataToEncryptHash" in encrypt_result, "Expected dataToEncryptHash in response"
+
+    # Test decryption
+    decrypt_result = client.decrypt_string(
+        ciphertext=encrypt_result["ciphertext"],
+        data_to_encrypt_hash=encrypt_result["dataToEncryptHash"],
+        chain="ethereum",
+        access_control_conditions=access_control_conditions,
+        session_sigs=session_sigs
+    )
+    assert "decryptedString" in decrypt_result, "Expected decryptedString in response"
+    assert decrypt_result["decryptedString"] == test_string, "Decrypted string should match original"
