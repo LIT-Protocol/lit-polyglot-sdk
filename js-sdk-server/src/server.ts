@@ -9,6 +9,7 @@ import {
   ProviderType,
   LIT_ABILITY,
   LIT_NETWORKS,
+  LIT_NETWORK,
 } from '@lit-protocol/constants';
 import { ethers } from 'ethers';
 import {
@@ -472,7 +473,7 @@ app.use(
 
 app.listen(port, async () => {
   app.locals.litNodeClient = new LitNodeClientNodeJs({
-    litNetwork: LitNetwork.DatilDev,
+    litNetwork: LIT_NETWORK.DatilDev,
   });
   await app.locals.litNodeClient.connect();
   console.log(`Server is running at http://localhost:${port}`);
