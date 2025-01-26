@@ -2,13 +2,12 @@ import express, { Request, Response, NextFunction } from 'express';
 import bodyParser from 'body-parser';
 import { LitNodeClientNodeJs } from '@lit-protocol/lit-node-client-nodejs';
 import {
-  LitNetwork,
-  LIT_RPC,
-  AuthMethodScope,
-  AuthMethodType,
-  ProviderType,
-  LIT_ABILITY,
   LIT_NETWORKS,
+  LIT_RPC,
+  LIT_ABILITY,
+  AUTH_METHOD_SCOPE,
+  AUTH_METHOD_TYPE,
+  PROVIDER_TYPE,
   LIT_NETWORK,
 } from '@lit-protocol/constants';
 import { ethers } from 'ethers';
@@ -81,10 +80,10 @@ interface LitContractsClientNewRequest {
 
 interface MintWithAuthRequest {
   authMethod: {
-    authMethodType: (typeof AuthMethodType)[keyof typeof AuthMethodType];
+    authMethodType: (typeof AUTH_METHOD_SCOPE)[keyof typeof AUTH_METHOD_SCOPE];
     accessToken: string;
   };
-  scopes: (typeof AuthMethodScope)[keyof typeof AuthMethodScope][];
+  scopes: (typeof AUTH_METHOD_SCOPE)[keyof typeof AUTH_METHOD_SCOPE][];
 }
 
 interface SetAuthTokenRequest {
