@@ -121,13 +121,43 @@ class LitClient:
         """Gets a property from the LitNodeClient"""
         return self._post("/litNodeClient/getProperty", {"property": property_name})
 
-    def execute_js(self, code: str, js_params: Dict[str, Any] = None, session_sigs: Dict[str, Any] = None) -> Dict[str, Any]:
-        """Executes JavaScript code on the Lit network"""
-        return self._post("/litNodeClient/executeJs", {
-            "code": code,
+    def execute_js(
+        self, 
+        code: Optional[str] = None, 
+        ipfs_id: Optional[str] = None,
+        js_params: Dict[str, Any] = None, 
+        session_sigs: Dict[str, Any] = None
+    ) -> Dict[str, Any]:
+        """Executes JavaScript code on the Lit network, either directly or from IPFS
+    
+        Args:
+            code: The JavaScript code to execute (mutually exclusive with ipfs_id)
+            ipfs_id: IPFS CID containing the JavaScript code to execute (mutually exclusive with code)
+            js_params: Parameters to pass to the JavaScript code
+            session_sigs: Session signatures for authentication
+        
+        Returns:
+            Dict containing the execution results
+        
+        Raises:
+            ValueError: If neither code nor ipfs_id is provided, or if both are provided
+        """
+        if code is None and ipfs_id is None:
+            raise ValueError("Must provide either code or ipfs_id")
+        if code is not None and ipfs_id is not None:
+            raise ValueError("Cannot provide both code and ipfs_id - use one or the other")
+        
+        payload = {
             "jsParams": js_params or {},
             "sessionSigs": session_sigs or {}
-        })
+        }
+    
+        if code is not None:
+            payload["code"] = code
+        else:
+            payload["ipfsId"] = ipfs_id
+        
+        return self._post("/litNodeClient/executeJs", payload)
 
     def get_session_sigs(self, chain: str, expiration: str, resource_ability_requests: List[Any]) -> Dict[str, Any]:
         """Gets session signatures"""
