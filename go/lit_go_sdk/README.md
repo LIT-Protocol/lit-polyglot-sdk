@@ -248,3 +248,7 @@ All methods return an error as their second return value. You should always chec
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
+
+## Publishing
+
+Run `./publish.sh` in the parent folder to publish a new version to the Go SDK. It will list existing versions and prompt you to enter the new version.

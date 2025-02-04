@@ -238,3 +238,8 @@ cd js-sdk-server && npm install && npm run build
 ```bash
 pytest
 ```
+
+## Publishing
+
+1. Update the version in `pyproject.toml`
+2. Run `./publish.sh`
