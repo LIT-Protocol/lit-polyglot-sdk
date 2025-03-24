@@ -35,9 +35,11 @@ We run a localhost Node.js server that is used to interact with the Lit JS SDK. 
 
 The [js-sdk-server](./js-sdk-server/README.md) is a Node.js server that is used to interact with the Lit JS SDK. It is bundled into the Python and Go SDKs.
 
-## Contributing
+## Contributing and adding new languages
 
 We welcome contributions to this project. To get in contact, please [join the community](https://developer.litprotocol.com/support/intro).
+
+To add a new language, you can use Cursor in agent mode. Tell cursor that this repo is a wrapper SDK repo with two languages already implemented. Then tell it to add a new language. It will generate the necessary files for the new language. Submit a PR and we'll review and fix any issues. Please try to maintain the existing code structure and organization.
 
 ## License
 
